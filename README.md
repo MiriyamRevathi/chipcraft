@@ -225,12 +225,14 @@ ChipCraft
 │       ├── engine.test.ts
 │       ├── turn2.test.ts
 │       ├── customIc.test.ts
-│       └── security.test.ts
+│       ├── security.test.ts
+│       └── comprehensive.test.ts
 │
-├── E2E Suite
+├── E2E & Accessibility Suite
 │   ├── playwright.config.ts
 │   └── e2e/
-│       └── chipcraft.spec.ts
+│       ├── chipcraft.spec.ts
+│       └── accessibility.spec.ts
 │
 └── Local Backend
     ├── server.ts
@@ -335,7 +337,8 @@ No `.env` file or API keys are needed.
 | `npm run preview`   | `vite preview`                     | Preview built frontend bundle                  |
 | `npm run lint`      | `tsc --noEmit`                     | Run TypeScript type checking                   |
 | `npm test`          | `vitest run`                       | Run unit and integration test suite            |
-| `npm run test:e2e`  | `playwright test`                  | Run Playwright end-to-end test suite           |
+| `npm run test:e2e`  | `playwright test`                  | Run Playwright E2E & WCAG accessibility suite  |
+| `npm run verify`    | `npm run lint && npm test && npm run build` | Run type check, Vitest, and production build |
 | `npm run clean`     | `rm -rf dist server.js`            | Remove build artifacts                         |
 
 ### Custom Host / Port
@@ -379,17 +382,17 @@ Test suites in `src/tests/`:
 - `src/tests/turn2.test.ts` (5 tests): Truth table analyzer, off-thread/synchronous clock burst simulation, and Express `/api/health` + `/api/projects` local file persistence.
 - `src/tests/customIc.test.ts` (8 tests): Custom IC subcircuit extraction, boundary-crossing wire preservation, pin customization & layout recalculation, multi-instance combinational & sequential state isolation, nested Custom ICs, circular dependency detection (`detectCustomICCycle` & `CIRCULAR_SUBCIRCUIT`), JSON serialization/import, and `/api/custom-ics` security hardening & disk persistence.
 - `src/tests/security.test.ts` (5 tests): JSON import array-root rejection, name-length limits, prototype-key sanitization, HTTP security headers (`X-Frame-Options`, `Cross-Origin-Resource-Policy`, `X-Content-Type-Options`), circuit payload validation, CPU assembler syntax & out-of-bounds PC checks, Memory Engine edge cases, and 2:1 Multiplexer truth table generation.
+- `src/tests/comprehensive.test.ts` (10 tests): Five-valued signal model & bus driver contention resolution, `validateNewConnection` & `auditCircuitGraph`, `componentCatalog` pin rotation & configurable gate sizing, Bus Merger/Splitter, 2-to-4 Decoder, Half Subtractor, 4-bit Comparator, T Flip-Flop, Fibonacci CPU execution, and all built-in HDL presets.
 
 ### TypeScript Check & Production Build
 
 ```bash
-npm run lint    # npx tsc --noEmit
-npm run build   # npx vite build
+npm run verify  # tsc --noEmit && vitest run && vite build
 ```
 
-### Playwright End-to-End Tests
+### Playwright End-to-End & WCAG Accessibility Tests
 
-`e2e/chipcraft.spec.ts` launches ChipCraft on an isolated configurable port (`E2E_PORT`, defaulting to `3100`) and resolves either Playwright Chromium or a locally installed Chrome/Edge executable:
+`e2e/chipcraft.spec.ts` and `e2e/accessibility.spec.ts` (`@axe-core/playwright`) launch ChipCraft on an isolated configurable port (`E2E_PORT`, defaulting to `3100`) and resolve either Playwright Chromium or a locally installed Chrome/Edge executable:
 
 ```bash
 npm run test:e2e
@@ -397,10 +400,10 @@ npm run test:e2e
 
 ### Latest Verified Status
 
-- **Vitest:** 31/31 tests passing across 4 test files (`engine.test.ts`, `turn2.test.ts`, `customIc.test.ts`, `security.test.ts`).
-- **Playwright E2E:** 10/10 end-to-end tests passing (`e2e/chipcraft.spec.ts`).
+- **Vitest:** 41/41 tests passing across 5 test files (`engine.test.ts`, `turn2.test.ts`, `customIc.test.ts`, `security.test.ts`, `comprehensive.test.ts`).
+- **Playwright E2E & WCAG:** 11/11 tests passing (`e2e/chipcraft.spec.ts` and `e2e/accessibility.spec.ts` with 0 critical/serious WCAG 2.1 A/AA violations).
 - **TypeScript (`npx tsc --noEmit`):** Passing with 0 errors.
-- **Production Build (`npm run build`):** Passing with workspace code-splitting (`index` main chunk `340.62 kB` / `100.27 kB` gzip; 0 chunk warnings).
+- **Production Build (`npm run build`):** Passing with workspace code-splitting (`index` main chunk `340.65 kB` / `100.28 kB` gzip; 0 chunk warnings).
 - **Dependencies:** `@google/genai` and `dotenv` removed from `package.json`; zero API keys or external services required.
 
 ---
@@ -464,14 +467,16 @@ The local backend should remain bound to localhost (`127.0.0.1`) unless delibera
 - [x] Removal of unused `@google/genai` and `dotenv` dependencies (100% key-free local operation)
 - [x] Playwright browser E2E suite verified (`e2e/chipcraft.spec.ts`, 10/10 passing)
 - [x] Keyboard navigation & WAI-ARIA accessibility improvements across workspaces
-- [x] Workspace lazy-loading bundle optimization (`React.lazy` + `Suspense`)
+- [x] Automated `axe-core` WCAG 2.1 A/AA regression test (`e2e/accessibility.spec.ts`) & contrast fixes
+- [x] Workspace lazy-loading bundle optimization (`React.lazy` + `Suspense`) & `CircuitCanvas` memoization
 - [x] Security hardening for JSON imports and Express API headers/validation
+- [x] Expanded unit test coverage (`41/41` Vitest tests across 5 files) & `CHANGELOG.md`
 
 ### Planned
 
-- [ ] Automated axe-core WCAG accessibility regression checks in CI
-- [ ] Canvas virtualization / memoization profiling for very large schematics
-- [ ] Production release packaging and changelog automation
+- [ ] Enable GitHub Actions CI workflow (`.github/workflows/ci.yml` requires `workflow` token scope to push)
+- [ ] Canvas virtualization profiling for very large schematics
+- [ ] Automated semantic version tagging on release
 
 ---
 
