@@ -2,9 +2,9 @@
 
 **Design. Simulate. Analyze. Build Digital Circuits.**
 
-ChipCraft is a browser-based digital electronics and computer architecture laboratory. It provides an interactive environment for designing logic circuits, packaging reusable custom ICs, simulating digital systems, exploring CPU architecture, analyzing signals, writing HDL, and learning digital hardware engineering.
+ChipCraft is a browser-based digital electronics and computer architecture laboratory. It provides an interactive environment for designing logic circuits, simulating digital systems, exploring CPU architecture, analyzing signals, writing HDL, and learning digital hardware engineering.
 
-Built with React, TypeScript, Vite, and a local Node.js backend, ChipCraft runs completely locally—no Gemini API, external AI endpoint, API key, cloud service, or database is required. Leftover template dependencies (`@google/genai` and `dotenv`) have been removed from `package.json`.
+Built with React 19, TypeScript, Vite, and a local Node.js backend, ChipCraft runs locally without external AI services, API keys, cloud services, or a traditional database.
 
 ---
 
@@ -16,6 +16,7 @@ Built with React, TypeScript, Vite, and a local Node.js backend, ChipCraft runs 
 - [Technology Stack](#technology-stack)
 - [Architecture](#architecture)
 - [Simulation Engine](#simulation-engine)
+- [Custom IC System](#custom-ic-system)
 - [Local Storage](#local-storage)
 - [Installation](#installation)
 - [Development](#development)
@@ -31,17 +32,18 @@ Built with React, TypeScript, Vite, and a local Node.js backend, ChipCraft runs 
 
 ChipCraft transforms a web browser into a digital electronics engineering laboratory.
 
-Users can construct circuits using visual components, connect logic gates, package subcircuits into reusable custom ICs, observe signal behavior, build an 8-bit CPU, explore memory systems, analyze waveforms, and experiment with a Verilog-subset HDL environment.
+Users can construct circuits using visual components, connect logic gates, observe signal behavior, build an 8-bit CPU, explore memory systems, analyze waveforms, and experiment with a Verilog-subset HDL environment.
 
 The application combines interactive circuit design with deterministic simulation engines and local project persistence.
 
 ### Core Principles
 
-- **Local-first:** Processing, projects, and custom ICs remain on the user's machine.
-- **Zero external AI or keys:** No Gemini API, external AI endpoint, or API credentials are required (`@google/genai` and `dotenv` removed from `package.json`).
-- **No database:** Uses browser storage (IndexedDB with `localStorage` fallback) and local JSON files.
+- **Local-first:** Processing and project data remain on the user's machine.
+- **No API keys:** No external AI or API credentials are required.
+- **No database:** Uses IndexedDB and local JSON file storage.
 - **Deterministic simulation:** Identical inputs and initial states produce reproducible results.
 - **Modular architecture:** Simulation engines and workspaces are independently organized.
+- **Privacy-focused:** No required cloud accounts or external AI services.
 - **Educational and practical:** Designed for learning, experimentation, and digital engineering.
 
 ---
@@ -51,21 +53,13 @@ The application combines interactive circuit design with deterministic simulatio
 ### Digital Circuit Design
 
 - Interactive schematic editor.
-- Component placement, duplication, copy/paste, and rotation.
+- Component placement and rotation.
 - Wire connections and pin mapping.
-- Circuit validation (pin direction, bit-width checks, and cycle detection).
+- Circuit validation.
 - Live circuit simulation.
-- Project saving, loading, and Save As functionality.
-- Truth table analysis.
-
-### Reusable Custom Subcircuit ICs
-
-- Package an entire circuit or a selected region of gates into a reusable `CUSTOM_IC` component (`PackageCustomICModal` and `customIcEngine`).
-- Auto-detection of external I/O pins and boundary-crossing wires when packaging a partial selection.
-- Pin customization: rename pins, reorder pins, and assign placement sides (`left`, `right`, `top`, `bottom`).
-- Multi-instance simulation with isolated internal sequential state per placed Custom IC instance.
-- Nested Custom IC composition (supporting up to 12 nesting levels) with direct/indirect circular dependency detection at both validation time and simulation runtime (`CIRCULAR_SUBCIRCUIT`).
-- JSON serialization/import for Custom ICs (including nested dependencies) and persistence to IndexedDB and `./data/custom-ics/`.
+- Project saving and loading.
+- Save As functionality.
+- Truth Table Analyzer.
 
 ### Logic Gate Laboratory
 
@@ -112,14 +106,20 @@ The application combines interactive circuit design with deterministic simulatio
 - Interactive circuit-building challenges.
 - Automated vector-based verification.
 - Challenge editing history.
-- Undo, redo, and component rotation.
+- Undo and redo.
+- Component rotation.
 
 ### Project Library
 
 - IndexedDB project persistence.
 - Local JSON export and import.
-- Local backend file persistence (`./data/projects/`).
+- Local backend file persistence.
 - Project management.
+
+### Custom IC Testing
+
+- Custom IC-related automated test coverage.
+- Custom IC functionality is developed and validated through the dedicated custom IC test suite.
 
 ### Additional Features
 
@@ -133,41 +133,39 @@ The application combines interactive circuit design with deterministic simulatio
 
 ## Workspaces
 
-ChipCraft includes 12 workspaces:
-
-| Workspace       | Purpose                                     |
-| --------------- | ------------------------------------------- |
-| Home            | Dashboard and live Half Adder simulation    |
-| Circuit Studio  | Visual circuit design and custom IC studio  |
-| Logic Gate Lab  | Logic gate experiments                      |
-| CPU Architect   | 8-bit CPU and assembler                     |
-| Memory Lab      | Memory simulation                           |
-| Signal Analyzer | Waveform analysis                           |
-| HDL Studio      | HDL parsing and synthesis                   |
-| Chip Explorer   | Chip and CMOS exploration                   |
-| Challenge Lab   | Interactive vector-verified challenges      |
-| Project Library | Project management                          |
-| Documentation   | Learning and reference                      |
-| Settings        | Application configuration                   |
+| Workspace       | Purpose                       |
+| --------------- | ----------------------------- |
+| Home            | Dashboard and live simulation |
+| Circuit Studio  | Visual circuit design         |
+| Logic Gate Lab  | Logic gate experiments        |
+| CPU Architect   | 8-bit CPU and assembler       |
+| Memory Lab      | Memory simulation             |
+| Signal Analyzer | Waveform analysis             |
+| HDL Studio      | HDL parsing and synthesis     |
+| Chip Explorer   | Chip and CMOS exploration     |
+| Challenge Lab   | Interactive challenges        |
+| Project Library | Project management            |
+| Documentation   | Learning and reference        |
+| Settings        | Application configuration     |
 
 ---
 
 ## Technology Stack
 
-| Technology   | Purpose                                                |
-| ------------ | ------------------------------------------------------ |
-| React 19     | User interface                                         |
-| TypeScript   | Type safety                                            |
-| Vite 8       | Development and build tooling                          |
-| Tailwind CSS | Styling                                                |
-| Zustand 5    | Application state management                           |
-| Vitest 5     | Unit and integration testing                           |
-| Node.js      | Local backend runtime                                  |
-| Express 4    | Local REST API                                         |
-| IndexedDB    | Browser-side project & custom IC persistence           |
-| Web Workers  | Off-thread clock burst simulation                      |
-| SVG / Canvas | Circuit and signal visualization                       |
-| Playwright   | Browser E2E test suite (`e2e/chipcraft.spec.ts`)       |
+| Technology   | Purpose                          |
+| ------------ | -------------------------------- |
+| React 19     | User interface                   |
+| TypeScript   | Type safety                      |
+| Vite         | Development and build tooling    |
+| Tailwind CSS | Styling                          |
+| Zustand      | Application state management     |
+| Vitest       | Unit and integration testing     |
+| Node.js      | Local backend runtime            |
+| Express      | Local REST API                   |
+| IndexedDB    | Browser-side project persistence |
+| Web Workers  | Off-thread simulation            |
+| SVG / Canvas | Circuit and signal visualization |
+| Playwright   | Planned browser E2E testing      |
 
 ---
 
@@ -178,65 +176,49 @@ ChipCraft follows a modular frontend and local-backend architecture.
 ```text
 ChipCraft
 │
-├── Frontend (src/)
-│   ├── App.tsx
-│   ├── main.tsx
-│   ├── index.css
+├── Frontend
+│   ├── React 19
+│   ├── TypeScript
+│   ├── Vite
+│   ├── Tailwind CSS
+│   ├── Zustand
 │   │
-│   ├── components/
-│   │   ├── AppShell.tsx
-│   │   ├── CommandPalette.tsx
-│   │   └── ErrorBoundary.tsx
+│   ├── src/features/
+│   │   ├── Home/
+│   │   ├── CircuitStudio/
+│   │   ├── LogicGateLab/
+│   │   ├── CPUArchitect/
+│   │   ├── MemoryLab/
+│   │   ├── SignalAnalyzer/
+│   │   ├── HDLStudio/
+│   │   ├── ChipExplorer/
+│   │   ├── ChallengeLab/
+│   │   ├── ProjectLibrary/
+│   │   ├── Documentation/
+│   │   └── Settings/
 │   │
-│   ├── design-system/
-│   │   └── ui.tsx
-│   │
-│   ├── features/
-│   │   ├── home/
-│   │   ├── circuit-studio/
-│   │   ├── logic-lab/
-│   │   ├── cpu-architect/
-│   │   ├── memory-lab/
-│   │   ├── signal-analyzer/
-│   │   ├── hdl-studio/
-│   │   ├── chip-explorer/
-│   │   ├── challenge-lab/
-│   │   ├── project-library/
-│   │   ├── documentation/
-│   │   └── settings/
-│   │
-│   ├── engine/
+│   ├── src/engine/
 │   │   ├── signals/
 │   │   ├── gates/
 │   │   ├── validation/
 │   │   ├── simulation/
-│   │   ├── subcircuit/
 │   │   ├── cpu/
 │   │   ├── memory/
 │   │   └── hdl/
 │   │
-│   ├── state/
-│   ├── storage/
-│   ├── templates/
-│   ├── types/
-│   ├── workers/
-│   └── tests/
-│       ├── engine.test.ts
-│       ├── turn2.test.ts
-│       └── customIc.test.ts
-│
-├── E2E Suite
-│   ├── playwright.config.ts
-│   └── e2e/
-│       └── chipcraft.spec.ts
+│   ├── src/storage/
+│   ├── src/workers/
+│   ├── src/templates/
+│   └── src/tests/
 │
 └── Local Backend
     ├── server.ts
-    ├── Express REST API (/api)
+    ├── Express REST API
     └── data/
-        ├── projects/
-        └── custom-ics/
+        └── projects/
 ```
+
+*This is a logical architecture overview. Consult the actual source tree for exact filenames and directory names.*
 
 ---
 
@@ -245,8 +227,6 @@ ChipCraft
 ChipCraft uses a deterministic digital logic simulation engine.
 
 ### Five-Valued Logic System
-
-The simulation engine supports five signal states:
 
 | Signal         | Meaning                             |
 | -------------- | ----------------------------------- |
@@ -258,46 +238,60 @@ The simulation engine supports five signal states:
 
 ### Engine Capabilities
 
-- 43 catalog entries (42 built-in digital components plus `CUSTOM_IC` for user-packaged subcircuits).
-- Pin direction and bus bit-width validation.
-- Edge-triggered sequential states with isolated per-instance state for Custom ICs.
-- Combinational cycle detection and circular subcircuit dependency detection.
-- Deterministic signal propagation and multi-tick clock burst simulation.
-- Exhaustive truth table generation for combinational circuits (including nested Custom ICs).
+- 41 digital components.
+- Pin and bus validation.
+- Edge-triggered sequential states.
+- Combinational cycle detection.
+- Deterministic signal propagation.
+- Circuit validation.
+- Multi-tick simulation.
+- Truth table generation.
+
+---
+
+## Custom IC System
+
+ChipCraft includes a dedicated custom IC development and testing area.
+
+The custom IC test suite is located at:
+
+```text
+src/tests/customIc.test.ts
+```
+
+Custom IC functionality should be documented according to the actual implemented capabilities. Features such as nested ICs, dependency validation, independent instance state, and reusable packaging should only be described as supported after their implementation and tests are verified.
 
 ---
 
 ## Local Storage
 
-ChipCraft does not require a traditional database or cloud account.
+ChipCraft does not require a traditional database.
 
-It uses two synchronized local persistence mechanisms:
+It uses two local persistence mechanisms.
 
-**Browser storage**
+### Browser Storage
 
-- IndexedDB (`projects`, `custom_ics`, and `settings` stores, with `localStorage` fallback).
-- Local project and custom IC retrieval.
+- IndexedDB for project persistence.
+- Local project retrieval.
 - JSON import and export.
 
-**Backend file storage**
+### Backend File Storage
 
-- Express-based local REST API (`server.ts`).
-- Local JSON files stored in `./data/projects/` and `./data/custom-ics/`.
-- Confined path resolution, strict ID validation (`/^[a-zA-Z0-9_-]{1,80}$/`), 2 MB payload limit, and unsafe key stripping (`__proto__`, `constructor`, `prototype`).
+- Express-based local REST API.
+- JSON project files.
+- Project creation, reading, updating, and deletion.
+- Sanitized project file handling.
 
 ### Backend Endpoints
 
-| Method | Endpoint              | Purpose                        |
-| ------ | --------------------- | ------------------------------ |
-| GET    | `/api/health`         | Backend & local storage status |
-| GET    | `/api/projects`       | List saved projects            |
-| PUT    | `/api/projects/:id`   | Create or update a project     |
-| DELETE | `/api/projects/:id`   | Delete a project               |
-| DELETE | `/api/projects`       | Clear all saved projects       |
-| GET    | `/api/custom-ics`     | List saved custom ICs          |
-| PUT    | `/api/custom-ics/:id` | Create or update a custom IC   |
-| DELETE | `/api/custom-ics/:id` | Delete a custom IC             |
-| DELETE | `/api/custom-ics`     | Clear all saved custom ICs     |
+| Method | Endpoint            | Purpose              |
+| ------ | ------------------- | -------------------- |
+| GET    | `/api/health`       | Backend health check |
+| GET    | `/api/projects`     | List projects        |
+| POST   | `/api/projects`     | Create a project     |
+| GET    | `/api/projects/:id` | Retrieve a project   |
+| PUT    | `/api/projects/:id` | Update a project     |
+| DELETE | `/api/projects/:id` | Delete a project     |
 
 ---
 
@@ -308,6 +302,14 @@ It uses two synchronized local persistence mechanisms:
 - Node.js (LTS recommended)
 - npm
 - A modern browser
+- Git (optional)
+
+### Clone the Repository
+
+```bash
+git clone <your-repository-url>
+cd chipcraft
+```
 
 ### Install Dependencies
 
@@ -315,33 +317,34 @@ It uses two synchronized local persistence mechanisms:
 npm install
 ```
 
-> **Note:** If `npm install` reports an optional peer dependency conflict between `vite` and `esbuild`, run:
->
-> ```bash
-> npm install --legacy-peer-deps
-> ```
+### Start Development
 
-No `.env` file or API keys are needed.
+```bash
+npm run dev
+```
 
-### Available Scripts (`package.json`)
+Use the scripts configured in `package.json` to start the frontend and backend. If they run separately, start both processes as configured by the project.
 
-| Script              | Command                           | Purpose                                        |
-| ------------------- | --------------------------------- | ---------------------------------------------- |
-| `npm run dev`       | `tsx server.ts`                   | Start Express API + Vite dev server on `:3000` |
-| `npm run start`     | `NODE_ENV=production tsx server.ts` | Serve built `dist/` + Express API            |
-| `npm run build`     | `vite build`                      | Build production frontend bundle into `dist/`  |
-| `npm run preview`   | `vite preview`                    | Preview built frontend bundle                  |
-| `npm run lint`      | `tsc --noEmit`                    | Run TypeScript type checking                   |
-| `npm test`          | `vitest run`                      | Run unit and integration test suite            |
-| `npm run test:e2e`  | `playwright test`                 | Run Playwright end-to-end test suite           |
-| `npm run clean`     | `rm -rf dist server.js`           | Remove build artifacts                         |
+### Start Local Backend
 
-### Custom Host / Port
-
-`server.ts` defaults to `0.0.0.0:3000` and supports `--port`, `--host`, or `PORT`:
+The backend can be started using:
 
 ```bash
 npx tsx server.ts --port 3010 --host 127.0.0.1
+```
+
+The exact port and startup arguments depend on the current server configuration.
+
+### Production Build
+
+```bash
+npm run build
+```
+
+### TypeScript Validation
+
+```bash
+npx tsc --noEmit
 ```
 
 ---
@@ -350,94 +353,103 @@ npx tsx server.ts --port 3010 --host 127.0.0.1
 
 Recommended development workflow:
 
-1. Start the local server with `npm run dev` (serves both the Vite frontend and Express `/api` endpoints).
-2. Open `http://localhost:3000` (or your configured `--port`) in your browser.
+1. Start the frontend and local backend.
+2. Open the application in your browser.
 3. Create a circuit in Circuit Studio.
-4. Add components, connect pins, or package selections into reusable Custom ICs.
-5. Run the simulation and truth table analyzer.
-6. Inspect timing diagrams in Signal Analyzer.
-7. Save and export projects in Project Library.
+4. Add components and connect pins.
+5. Run the simulation.
+6. Inspect results in Signal Analyzer.
+7. Save the project in Project Library.
+8. Run automated tests after making changes.
 
 ---
 
 ## Testing
 
-ChipCraft uses Vitest for automated unit and integration tests and includes a Playwright configuration for end-to-end tests.
+ChipCraft uses Vitest for automated unit and integration testing.
 
-### Unit & Integration Tests (Vitest)
-
-```bash
-npm test
-# or: npx vitest run
-```
-
-Test suites in `src/tests/`:
-
-- `src/tests/engine.test.ts` (13 tests): Boolean gate truth tables, Half/Full Adder simulation, pin/bit-width validation, combinational loop detection, sequential D Flip-Flop & 4-Bit Counter, 4-Bit ALU, 8-Bit CPU & Assembler, Memory Engine, HDL parser/evaluator/synthesizer, Challenge verification, and JSON export/import.
-- `src/tests/turn2.test.ts` (5 tests): Truth table analyzer, off-thread/synchronous clock burst simulation, and Express `/api/health` + `/api/projects` local file persistence.
-- `src/tests/customIc.test.ts` (8 tests): Custom IC subcircuit extraction, boundary-crossing wire preservation, pin customization & layout recalculation, multi-instance combinational & sequential state isolation, nested Custom ICs, circular dependency detection (`detectCustomICCycle` & `CIRCULAR_SUBCIRCUIT`), JSON serialization/import, and `/api/custom-ics` security hardening & disk persistence.
-
-### TypeScript Check & Production Build
+### Run All Tests
 
 ```bash
-npm run lint    # npx tsc --noEmit
-npm run build   # npx vite build
+npx vitest run
 ```
 
-### Playwright End-to-End Tests
-
-`e2e/chipcraft.spec.ts` is configured via `playwright.config.ts` and can be run with:
+### Run Tests in Watch Mode
 
 ```bash
-npm run test:e2e
+npx vitest
 ```
 
-### Latest Verified Status
+### Run Production Build
 
-- **Vitest:** 26/26 tests passing across 3 test files (`engine.test.ts`, `turn2.test.ts`, `customIc.test.ts`).
-- **TypeScript (`npx tsc --noEmit`):** Passing with 0 errors.
-- **Production Build (`npm run build`):** Verified against the current source.
-- **Dependencies:** `@google/genai` and `dotenv` removed from `package.json`; zero API keys or external services required.
+```bash
+npm run build
+```
+
+### Run TypeScript Validation
+
+```bash
+npx tsc --noEmit
+```
+
+### Verified Test Suites
+
+| Test File          | Purpose                                   |
+| ------------------ | ----------------------------------------- |
+| `engine.test.ts`   | Core simulation engine                    |
+| `turn2.test.ts`    | Integration and application functionality |
+| `customIc.test.ts` | Custom IC functionality                   |
+
+### Latest Reported Verification
+
+\<badge color="success">26/26 tests passed\</badge>
+
+- 3 test files passed.
+- 26 individual tests passed.
+- TypeScript validation completed without errors.
+- Gemini-related template dependencies removed.
+- `@google/genai` removed from `package.json`.
+- `dotenv` removed from `package.json`.
+
+These results reflect the latest reported development checkpoint. Run the commands above to verify the current source before release.
 
 ---
 
 ## Keyboard Shortcuts
 
-| Shortcut                       | Scope          | Action                               |
-| ------------------------------ | -------------- | ------------------------------------ |
-| `Ctrl + K` / `Cmd + K`         | Global         | Open Command Palette                 |
-| `R`                            | Circuit Canvas | Rotate selected component(s)         |
-| `Delete` / `Backspace`         | Circuit Canvas | Delete selected component(s) or wire |
-| `Ctrl + Z` / `Cmd + Z`         | Circuit Canvas | Undo                                 |
-| `Ctrl + Y` / `Ctrl + Shift + Z`| Circuit Canvas | Redo                                 |
-| `Ctrl + C` / `Cmd + C`         | Circuit Canvas | Copy selection                       |
-| `Ctrl + V` / `Cmd + V`         | Circuit Canvas | Paste selection                      |
-| `Ctrl + D` / `Cmd + D`         | Circuit Canvas | Duplicate selection                  |
-| `Escape`                       | Circuit Canvas | Cancel pending wire / clear selection|
+| Shortcut | Action               |
+| -------- | -------------------- |
+| Ctrl + K | Open Command Palette |
+
+Additional shortcuts may be introduced in future releases.
 
 ---
 
 ## Privacy and Security
 
-ChipCraft is designed around local-first operation.
+ChipCraft is designed around local-first operation
 
-- No Gemini API or external AI endpoint is used.
+- No external AI endpoints are required.
 - No cloud database is required.
-- No external API keys or `.env` secrets are required.
-- Project and Custom IC files are stored locally in IndexedDB and `./data/`.
-- Simulation processing runs locally in the browser and Web Workers.
-- Express API enforces ID sanitization, confined filesystem paths, 2 MB JSON size limits, prototype-key stripping, and `X-Content-Type-Options` / `Referrer-Policy` / `Permissions-Policy` / `Cache-Control` headers.
+- No external API keys are required.
+- Project files can be stored locally.
+- Simulation processing is performed locally.
+- Browser storage uses IndexedDB.
+- Backend project persistence uses local JSON files.
 
-The local backend should remain bound to localhost (`127.0.0.1`) unless deliberate network access is intended.
+The local backend should remain bound to localhost unless deliberate network access is configured.
+
+File paths, project identifiers, request sizes, and imported project content should be validated to prevent unsafe file operations and malformed data.
 
 ---
 
 ## Development Roadmap
 
-### Completed and Verified
+### Completed and Reported
 
-- [x] React 19 + TypeScript + Vite 8 foundation
-- [x] Five-valued logic simulation engine
+- [x] React 19 + TypeScript + Vite foundation
+- [x] Five-valued digital logic engine
+- [x] 41 digital components
 - [x] Circuit Studio
 - [x] Logic Gate Lab
 - [x] CPU Architect and assembler
@@ -447,19 +459,22 @@ The local backend should remain bound to localhost (`127.0.0.1`) unless delibera
 - [x] Chip Explorer
 - [x] Challenge Lab
 - [x] Project Library
-- [x] Local Express backend (`/api/projects` & `/api/custom-ics`)
+- [x] Local Express backend
+- [x] Local JSON project storage
+- [x] IndexedDB persistence
 - [x] Web Worker simulation integration
 - [x] Circuit Save As
 - [x] Truth Table Analyzer
+- [x] Challenge undo and redo
 - [x] Light lavender and white theme
-- [x] Reusable custom subcircuit IC packaging (`PackageCustomICModal` & `customIcEngine`)
-- [x] Nested custom IC support (up to 12 levels)
-- [x] Custom IC circular dependency validation & runtime guard
-- [x] Removal of unused `@google/genai` and `dotenv` dependencies (100% key-free local operation)
+- [x] Custom IC test suite
+- [x] Removal of unused Gemini template dependencies
 
-### In Progress / Planned
+### Remaining and Planned
 
-- [ ] Full Playwright browser E2E verification across environments (`e2e/chipcraft.spec.ts`)
+- [ ] Comprehensive custom IC feature verification
+- [ ] Advanced nested custom IC support, if not already implemented
+- [ ] Playwright browser E2E suite
 - [ ] Comprehensive accessibility testing
 - [ ] Performance optimization
 - [ ] Security audit
@@ -469,23 +484,28 @@ The local backend should remain bound to localhost (`127.0.0.1`) unless delibera
 
 ## Project Goals
 
-ChipCraft aims to provide a self-contained, reproducible digital hardware learning and experimentation platform.
+ChipCraft aims to become a comprehensive digital hardware learning and experimentation platform.
 
-Core goals include:
+Long-term goals include:
 
 - Advanced digital circuit design.
-- Reusable and composable custom hardware components.
+- Reusable custom hardware components.
 - CPU architecture experimentation.
 - Memory architecture simulation.
 - HDL-based circuit development.
 - Advanced waveform analysis.
 - Educational challenges.
-- Reproducible local simulation workflows.
+- Reproducible simulation workflows.
+- Local-first digital engineering tools.
+
+---
+
+## License
+
+Choose and add an appropriate open-source license before publishing this project publicly.
 
 ---
 
 **ChipCraft — Your Digital Hardware Laboratory.**
 
 Design circuits. Understand logic. Simulate systems. Explore computing.
-#   c h i p c r a f t  
- 
