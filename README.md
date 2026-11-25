@@ -41,7 +41,7 @@ The application combines interactive circuit design with deterministic simulatio
 - **Zero external AI or keys:** No Gemini API, external AI endpoint, or API credentials are required (`@google/genai` and `dotenv` removed from `package.json`).
 - **No database:** Uses browser storage (IndexedDB with `localStorage` fallback) and local JSON files.
 - **Deterministic simulation:** Identical inputs and initial states produce reproducible results.
-- **Modular architecture:** Simulation engines and workspaces are independently organized.
+- **Modular architecture:** Simulation engines and workspaces are independently organized and code-split for fast startup.
 - **Educational and practical:** Designed for learning, experimentation, and digital engineering.
 
 ---
@@ -125,8 +125,9 @@ The application combines interactive circuit design with deterministic simulatio
 
 - Documentation workspace.
 - Settings workspace.
-- Command palette.
-- Keyboard navigation.
+- Accessible Command Palette (`combobox`/`listbox` ARIA + focus restoration).
+- Keyboard navigation across tabs, modals, and canvas tools.
+- Lazy-loaded workspace code splitting.
 - Light lavender and white interface.
 
 ---
@@ -156,7 +157,7 @@ ChipCraft includes 12 workspaces:
 
 | Technology   | Purpose                                                |
 | ------------ | ------------------------------------------------------ |
-| React 19     | User interface                                         |
+| React 19     | User interface with lazy-loaded workspace chunks       |
 | TypeScript   | Type safety                                            |
 | Vite 8       | Development and build tooling                          |
 | Tailwind CSS | Styling                                                |
@@ -223,7 +224,8 @@ ChipCraft
 │   └── tests/
 │       ├── engine.test.ts
 │       ├── turn2.test.ts
-│       └── customIc.test.ts
+│       ├── customIc.test.ts
+│       └── security.test.ts
 │
 ├── E2E Suite
 │   ├── playwright.config.ts
@@ -277,13 +279,13 @@ It uses two synchronized local persistence mechanisms:
 
 - IndexedDB (`projects`, `custom_ics`, and `settings` stores, with `localStorage` fallback).
 - Local project and custom IC retrieval.
-- JSON import and export.
+- JSON import and export with prototype-key stripping and schema validation.
 
 **Backend file storage**
 
 - Express-based local REST API (`server.ts`).
 - Local JSON files stored in `./data/projects/` and `./data/custom-ics/`.
-- Confined path resolution, strict ID validation (`/^[a-zA-Z0-9_-]{1,80}$/`), 2 MB payload limit, and unsafe key stripping (`__proto__`, `constructor`, `prototype`).
+- Confined path resolution, strict ID validation (`/^[a-zA-Z0-9_-]{1,80}$/`), 2 MB payload limit, circuit structure checks, and unsafe key stripping (`__proto__`, `constructor`, `prototype`).
 
 ### Backend Endpoints
 
@@ -325,16 +327,16 @@ No `.env` file or API keys are needed.
 
 ### Available Scripts (`package.json`)
 
-| Script              | Command                           | Purpose                                        |
-| ------------------- | --------------------------------- | ---------------------------------------------- |
-| `npm run dev`       | `tsx server.ts`                   | Start Express API + Vite dev server on `:3000` |
-| `npm run start`     | `NODE_ENV=production tsx server.ts` | Serve built `dist/` + Express API            |
-| `npm run build`     | `vite build`                      | Build production frontend bundle into `dist/`  |
-| `npm run preview`   | `vite preview`                    | Preview built frontend bundle                  |
-| `npm run lint`      | `tsc --noEmit`                    | Run TypeScript type checking                   |
-| `npm test`          | `vitest run`                      | Run unit and integration test suite            |
-| `npm run test:e2e`  | `playwright test`                 | Run Playwright end-to-end test suite           |
-| `npm run clean`     | `rm -rf dist server.js`           | Remove build artifacts                         |
+| Script              | Command                            | Purpose                                        |
+| ------------------- | ---------------------------------- | ---------------------------------------------- |
+| `npm run dev`       | `tsx server.ts`                    | Start Express API + Vite dev server on `:3000` |
+| `npm run start`     | `NODE_ENV=production tsx server.ts` | Serve built `dist/` + Express API             |
+| `npm run build`     | `vite build`                       | Build production frontend bundle into `dist/`  |
+| `npm run preview`   | `vite preview`                     | Preview built frontend bundle                  |
+| `npm run lint`      | `tsc --noEmit`                     | Run TypeScript type checking                   |
+| `npm test`          | `vitest run`                       | Run unit and integration test suite            |
+| `npm run test:e2e`  | `playwright test`                  | Run Playwright end-to-end test suite           |
+| `npm run clean`     | `rm -rf dist server.js`            | Remove build artifacts                         |
 
 ### Custom Host / Port
 
@@ -362,7 +364,7 @@ Recommended development workflow:
 
 ## Testing
 
-ChipCraft uses Vitest for automated unit and integration tests and includes a Playwright configuration for end-to-end tests.
+ChipCraft uses Vitest for unit and integration tests and Playwright for browser end-to-end verification.
 
 ### Unit & Integration Tests (Vitest)
 
@@ -376,6 +378,7 @@ Test suites in `src/tests/`:
 - `src/tests/engine.test.ts` (13 tests): Boolean gate truth tables, Half/Full Adder simulation, pin/bit-width validation, combinational loop detection, sequential D Flip-Flop & 4-Bit Counter, 4-Bit ALU, 8-Bit CPU & Assembler, Memory Engine, HDL parser/evaluator/synthesizer, Challenge verification, and JSON export/import.
 - `src/tests/turn2.test.ts` (5 tests): Truth table analyzer, off-thread/synchronous clock burst simulation, and Express `/api/health` + `/api/projects` local file persistence.
 - `src/tests/customIc.test.ts` (8 tests): Custom IC subcircuit extraction, boundary-crossing wire preservation, pin customization & layout recalculation, multi-instance combinational & sequential state isolation, nested Custom ICs, circular dependency detection (`detectCustomICCycle` & `CIRCULAR_SUBCIRCUIT`), JSON serialization/import, and `/api/custom-ics` security hardening & disk persistence.
+- `src/tests/security.test.ts` (5 tests): JSON import array-root rejection, name-length limits, prototype-key sanitization, HTTP security headers (`X-Frame-Options`, `Cross-Origin-Resource-Policy`, `X-Content-Type-Options`), circuit payload validation, CPU assembler syntax & out-of-bounds PC checks, Memory Engine edge cases, and 2:1 Multiplexer truth table generation.
 
 ### TypeScript Check & Production Build
 
@@ -386,7 +389,7 @@ npm run build   # npx vite build
 
 ### Playwright End-to-End Tests
 
-`e2e/chipcraft.spec.ts` is configured via `playwright.config.ts` and can be run with:
+`e2e/chipcraft.spec.ts` launches ChipCraft on an isolated configurable port (`E2E_PORT`, defaulting to `3100`) and resolves either Playwright Chromium or a locally installed Chrome/Edge executable:
 
 ```bash
 npm run test:e2e
@@ -394,9 +397,10 @@ npm run test:e2e
 
 ### Latest Verified Status
 
-- **Vitest:** 26/26 tests passing across 3 test files (`engine.test.ts`, `turn2.test.ts`, `customIc.test.ts`).
+- **Vitest:** 31/31 tests passing across 4 test files (`engine.test.ts`, `turn2.test.ts`, `customIc.test.ts`, `security.test.ts`).
+- **Playwright E2E:** 10/10 end-to-end tests passing (`e2e/chipcraft.spec.ts`).
 - **TypeScript (`npx tsc --noEmit`):** Passing with 0 errors.
-- **Production Build (`npm run build`):** Verified against the current source.
+- **Production Build (`npm run build`):** Passing with workspace code-splitting (`index` main chunk `340.62 kB` / `100.27 kB` gzip; 0 chunk warnings).
 - **Dependencies:** `@google/genai` and `dotenv` removed from `package.json`; zero API keys or external services required.
 
 ---
@@ -406,6 +410,7 @@ npm run test:e2e
 | Shortcut                       | Scope          | Action                               |
 | ------------------------------ | -------------- | ------------------------------------ |
 | `Ctrl + K` / `Cmd + K`         | Global         | Open Command Palette                 |
+| `ArrowLeft` / `ArrowRight`     | Tab Lists      | Switch between tabs with focus       |
 | `R`                            | Circuit Canvas | Rotate selected component(s)         |
 | `Delete` / `Backspace`         | Circuit Canvas | Delete selected component(s) or wire |
 | `Ctrl + Z` / `Cmd + Z`         | Circuit Canvas | Undo                                 |
@@ -413,7 +418,7 @@ npm run test:e2e
 | `Ctrl + C` / `Cmd + C`         | Circuit Canvas | Copy selection                       |
 | `Ctrl + V` / `Cmd + V`         | Circuit Canvas | Paste selection                      |
 | `Ctrl + D` / `Cmd + D`         | Circuit Canvas | Duplicate selection                  |
-| `Escape`                       | Circuit Canvas | Cancel pending wire / clear selection|
+| `Escape`                       | Modals/Canvas  | Close dialog / cancel wire / deselect|
 
 ---
 
@@ -426,7 +431,8 @@ ChipCraft is designed around local-first operation.
 - No external API keys or `.env` secrets are required.
 - Project and Custom IC files are stored locally in IndexedDB and `./data/`.
 - Simulation processing runs locally in the browser and Web Workers.
-- Express API enforces ID sanitization, confined filesystem paths, 2 MB JSON size limits, prototype-key stripping, and `X-Content-Type-Options` / `Referrer-Policy` / `Permissions-Policy` / `Cache-Control` headers.
+- Imported JSON files strip unsafe keys (`__proto__`, `constructor`, `prototype`), enforce object roots, and validate project/circuit structures.
+- Express API enforces ID sanitization, confined filesystem paths, 2 MB JSON size limits, prototype-key stripping, and `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, `Cross-Origin-Resource-Policy: same-origin`, `Permissions-Policy`, and `Cache-Control: no-store` headers.
 
 The local backend should remain bound to localhost (`127.0.0.1`) unless deliberate network access is intended.
 
@@ -456,14 +462,16 @@ The local backend should remain bound to localhost (`127.0.0.1`) unless delibera
 - [x] Nested custom IC support (up to 12 levels)
 - [x] Custom IC circular dependency validation & runtime guard
 - [x] Removal of unused `@google/genai` and `dotenv` dependencies (100% key-free local operation)
+- [x] Playwright browser E2E suite verified (`e2e/chipcraft.spec.ts`, 10/10 passing)
+- [x] Keyboard navigation & WAI-ARIA accessibility improvements across workspaces
+- [x] Workspace lazy-loading bundle optimization (`React.lazy` + `Suspense`)
+- [x] Security hardening for JSON imports and Express API headers/validation
 
-### In Progress / Planned
+### Planned
 
-- [ ] Full Playwright browser E2E verification across environments (`e2e/chipcraft.spec.ts`)
-- [ ] Comprehensive accessibility testing
-- [ ] Performance optimization
-- [ ] Security audit
-- [ ] Production release preparation
+- [ ] Automated axe-core WCAG accessibility regression checks in CI
+- [ ] Canvas virtualization / memoization profiling for very large schematics
+- [ ] Production release packaging and changelog automation
 
 ---
 
@@ -487,5 +495,3 @@ Core goals include:
 **ChipCraft — Your Digital Hardware Laboratory.**
 
 Design circuits. Understand logic. Simulate systems. Explore computing.
-#   c h i p c r a f t  
- 
