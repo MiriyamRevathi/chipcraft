@@ -1,0 +1,6 @@
+{
+  "name": "ChipCraft",
+  "description": "Virtual chip design and digital electronics simulation platform. Design logic circuits, build processors, analyze waveforms, write HDL, and simulate hardware directly in your browser.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
