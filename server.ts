@@ -77,7 +77,9 @@ export function createApiRouter() {
   // Baseline security headers for API responses
   router.use((_req, res, next) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('Referrer-Policy', 'no-referrer');
+    res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
     res.setHeader('Cache-Control', 'no-store');
     next();
   });
@@ -131,6 +133,18 @@ export function createApiRouter() {
     if (!ALLOWED_PROJECT_KINDS.has(kind)) {
       res.status(400).json({ error: 'Invalid project kind.' });
       return;
+    }
+    if (body.circuit !== undefined) {
+      if (
+        !body.circuit ||
+        typeof body.circuit !== 'object' ||
+        Array.isArray(body.circuit) ||
+        !Array.isArray((body.circuit as Record<string, unknown>).nodes) ||
+        !Array.isArray((body.circuit as Record<string, unknown>).wires)
+      ) {
+        res.status(400).json({ error: 'Circuit payload must include nodes and wires arrays.' });
+        return;
+      }
     }
 
     try {
@@ -268,7 +282,9 @@ export async function createAppServer() {
   app.disable('x-powered-by');
   app.use((_req, res, next) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('Referrer-Policy', 'no-referrer');
+    res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
     res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
     next();
   });

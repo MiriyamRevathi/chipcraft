@@ -359,6 +359,23 @@ export function serializeProjectToJSON(project: ProjectRecord): string {
   );
 }
 
+const FORBIDDEN_JSON_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+
+function stripUnsafeObjectKeys<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value.map((item) => stripUnsafeObjectKeys(item)) as unknown as T;
+  }
+  if (value && typeof value === 'object') {
+    const clean: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      if (FORBIDDEN_JSON_KEYS.has(k)) continue;
+      clean[k] = stripUnsafeObjectKeys(v);
+    }
+    return clean as T;
+  }
+  return value;
+}
+
 export function parseImportedProjectJSON(
   rawText: string
 ): { ok: true; project: ProjectRecord } | { ok: false; error: string } {
@@ -369,13 +386,16 @@ export function parseImportedProjectJSON(
     return { ok: false, error: 'Invalid JSON syntax. Please select a valid ChipCraft .json export file.' };
   }
 
-  if (!parsed || typeof parsed !== 'object') {
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
     return { ok: false, error: 'File root must be a JSON object.' };
   }
 
-  const envelope = parsed as Record<string, unknown>;
+  const envelope = stripUnsafeObjectKeys(parsed as Record<string, unknown>);
   const candidate =
-    envelope.format === 'chipcraft-project' && envelope.project && typeof envelope.project === 'object'
+    envelope.format === 'chipcraft-project' &&
+    envelope.project &&
+    typeof envelope.project === 'object' &&
+    !Array.isArray(envelope.project)
       ? (envelope.project as Record<string, unknown>)
       : envelope;
 
@@ -387,8 +407,9 @@ export function parseImportedProjectJSON(
     };
   }
 
-  if (typeof candidate.name !== 'string' || !candidate.name.trim()) {
-    return { ok: false, error: 'Project file is missing a valid "name" field.' };
+  const trimmedName = typeof candidate.name === 'string' ? candidate.name.trim() : '';
+  if (!trimmedName || trimmedName.length > 120) {
+    return { ok: false, error: 'Project file must have a valid "name" between 1 and 120 characters.' };
   }
 
   const validKinds = ['circuit', 'logic', 'cpu', 'memory', 'hdl'];
@@ -396,7 +417,10 @@ export function parseImportedProjectJSON(
     ? (candidate.kind as ProjectRecord['kind'])
     : 'circuit';
 
-  if (kind === 'circuit' && candidate.circuit) {
+  if (kind === 'circuit' && candidate.circuit !== undefined) {
+    if (!candidate.circuit || typeof candidate.circuit !== 'object' || Array.isArray(candidate.circuit)) {
+      return { ok: false, error: 'Corrupted circuit data: "circuit" must be an object.' };
+    }
     const c = candidate.circuit as Record<string, unknown>;
     if (!Array.isArray(c.nodes) || !Array.isArray(c.wires)) {
       return { ok: false, error: 'Corrupted circuit data: "nodes" and "wires" must be arrays.' };
@@ -404,9 +428,28 @@ export function parseImportedProjectJSON(
   }
 
   const now = Date.now();
+  const safeMemoryData = Array.isArray(candidate.memoryData)
+    ? (candidate.memoryData as unknown[])
+        .filter((v): v is number => typeof v === 'number' && Number.isFinite(v))
+        .map((v) => v & 0xff)
+    : undefined;
+  const safeEmbeddedIcs = Array.isArray(candidate.embeddedCustomIcs)
+    ? (candidate.embeddedCustomIcs as unknown[]).filter(
+        (ic): ic is CustomICDefinition =>
+          Boolean(ic) &&
+          typeof ic === 'object' &&
+          !Array.isArray(ic) &&
+          typeof (ic as CustomICDefinition).id === 'string' &&
+          typeof (ic as CustomICDefinition).name === 'string' &&
+          Array.isArray((ic as CustomICDefinition).pins) &&
+          Array.isArray((ic as CustomICDefinition).nodes) &&
+          Array.isArray((ic as CustomICDefinition).wires)
+      )
+    : undefined;
+
   const safeProject: ProjectRecord = {
     id: `imported-${now}-${Math.random().toString(36).slice(2, 6)}`,
-    name: candidate.name.trim(),
+    name: trimmedName,
     kind,
     description: typeof candidate.description === 'string' ? candidate.description : 'Imported project',
     createdAt: typeof candidate.createdAt === 'number' ? candidate.createdAt : now,
@@ -415,10 +458,8 @@ export function parseImportedProjectJSON(
     circuit: candidate.circuit as ProjectRecord['circuit'],
     hdlCode: typeof candidate.hdlCode === 'string' ? candidate.hdlCode : undefined,
     cpuAssembly: typeof candidate.cpuAssembly === 'string' ? candidate.cpuAssembly : undefined,
-    memoryData: Array.isArray(candidate.memoryData) ? (candidate.memoryData as number[]) : undefined,
-    embeddedCustomIcs: Array.isArray(candidate.embeddedCustomIcs)
-      ? (candidate.embeddedCustomIcs as CustomICDefinition[])
-      : undefined,
+    memoryData: safeMemoryData,
+    embeddedCustomIcs: safeEmbeddedIcs,
   };
 
   return { ok: true, project: safeProject };
