@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type {
   CircuitDocument,
   CircuitNode,
@@ -332,25 +332,36 @@ export function CircuitCanvas({
     setPendingWire(null);
   };
 
-  const handlePinMouseDown = (e: React.MouseEvent, nodeId: string, pin: PinDefinition) => {
-    const node = circuit.nodes.find((n) => n.id === nodeId);
-    if (!node) return;
-    const pos = getPinAbsolutePosition(node, pin.id);
-    setPendingWire({
-      nodeId,
-      pin,
-      startX: pos.x,
-      startY: pos.y,
-      currX: pos.x,
-      currY: pos.y,
-    });
-  };
+  const nodeMap = useMemo(() => new Map(circuit.nodes.map((n) => [n.id, n])), [circuit.nodes]);
+  const selectedNodeSet = useMemo(() => new Set(selectedNodeIds), [selectedNodeIds]);
 
-  const handlePinMouseUp = (_e: React.MouseEvent, nodeId: string, pin: PinDefinition) => {
-    if (!pendingWire) return;
-    onConnectPins(pendingWire.nodeId, pendingWire.pin.id, nodeId, pin.id);
-    setPendingWire(null);
-  };
+  const handlePinMouseDown = useCallback(
+    (_e: React.MouseEvent, nodeId: string, pin: PinDefinition) => {
+      const node = nodeMap.get(nodeId);
+      if (!node) return;
+      const pos = getPinAbsolutePosition(node, pin.id);
+      setPendingWire({
+        nodeId,
+        pin,
+        startX: pos.x,
+        startY: pos.y,
+        currX: pos.x,
+        currY: pos.y,
+      });
+    },
+    [nodeMap]
+  );
+
+  const handlePinMouseUp = useCallback(
+    (_e: React.MouseEvent, nodeId: string, pin: PinDefinition) => {
+      setPendingWire((current) => {
+        if (!current) return null;
+        onConnectPins(current.nodeId, current.pin.id, nodeId, pin.id);
+        return null;
+      });
+    },
+    [onConnectPins]
+  );
 
   const handleDrop = (e: React.DragEvent<SVGSVGElement>) => {
     e.preventDefault();
@@ -366,7 +377,26 @@ export function CircuitCanvas({
     onAddNode(compType, pos.x - 44, pos.y - 28);
   };
 
-  const nodeMap = new Map(circuit.nodes.map((n) => [n.id, n]));
+  const wireGeometries = useMemo(
+    () =>
+      circuit.wires.flatMap((wire) => {
+        const fromNode = nodeMap.get(wire.fromNodeId);
+        const toNode = nodeMap.get(wire.toNodeId);
+        if (!fromNode || !toNode) return [];
+        const p1 = getPinAbsolutePosition(fromNode, wire.fromPinId);
+        const p2 = getPinAbsolutePosition(toNode, wire.toPinId);
+        return [
+          {
+            wire,
+            fromLabel: fromNode.label,
+            toLabel: toNode.label,
+            d: buildWirePath(p1.x, p1.y, p2.x, p2.y, settings.wireStyle),
+          },
+        ];
+      }),
+    [circuit.wires, nodeMap, settings.wireStyle]
+  );
+
   const gridStep = settings.gridSize * zoom;
 
   return (
@@ -404,18 +434,12 @@ export function CircuitCanvas({
 
         <g transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
           {/* Wires Layer */}
-          {circuit.wires.map((wire) => {
-            const fromNode = nodeMap.get(wire.fromNodeId);
-            const toNode = nodeMap.get(wire.toNodeId);
-            if (!fromNode || !toNode) return null;
-            const p1 = getPinAbsolutePosition(fromNode, wire.fromPinId);
-            const p2 = getPinAbsolutePosition(toNode, wire.toPinId);
+          {wireGeometries.map(({ wire, fromLabel, toLabel, d }) => {
             const bus = simulation.wireValues[wire.id];
             const sig = primarySignal(bus);
             const col = signalColor(sig);
             const isBus = (bus?.width ?? 1) > 1;
             const isSelected = selectedWireId === wire.id;
-            const d = buildWirePath(p1.x, p1.y, p2.x, p2.y, settings.wireStyle);
 
             return (
               <g
@@ -448,7 +472,7 @@ export function CircuitCanvas({
                   strokeDasharray={sig === 'HIGH_IMPEDANCE' ? '6 4' : undefined}
                 >
                   <title>
-                    {fromNode.label}.{wire.fromPinId} → {toNode.label}.{wire.toPinId} ({formatBusBinary(bus)})
+                    {fromLabel}.{wire.fromPinId} → {toLabel}.{wire.toPinId} ({formatBusBinary(bus)})
                   </title>
                 </path>
               </g>
@@ -482,7 +506,7 @@ export function CircuitCanvas({
             >
               <ComponentSymbol
                 node={node}
-                selected={selectedNodeIds.includes(node.id)}
+                selected={selectedNodeSet.has(node.id)}
                 pinValues={simulation.pinValues}
                 showPinLabels={settings.showPinLabels}
                 onPinMouseDown={handlePinMouseDown}

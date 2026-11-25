@@ -196,6 +196,7 @@ test.describe('ChipCraft Production End-to-End Suite', () => {
 
     await page.getByRole('button', { name: 'Signal Analyzer' }).last().click();
     await expect(page.getByRole('heading', { name: 'Signal Analyzer', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Clear Buffer' })).toBeVisible();
 
     // Pause live auto-clock if active, clear buffer to 1 sample, then run 16-tick Web Worker burst
     const pauseBtn = page.getByRole('button', { name: 'Pause Auto' });
