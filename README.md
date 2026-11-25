@@ -487,3 +487,5 @@ Core goals include:
 **ChipCraft — Your Digital Hardware Laboratory.**
 
 Design circuits. Understand logic. Simulate systems. Explore computing.
+#   c h i p c r a f t  
+ 
