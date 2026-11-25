@@ -761,7 +761,7 @@ export function CircuitStudio() {
                                     key={lbl}
                                     className={`py-1 px-2 text-center font-bold ${
                                       st === 'HIGH'
-                                        ? 'text-[#16A34A]'
+                                        ? 'text-[#15803D]'
                                         : st === 'ERROR'
                                           ? 'text-[#DC2626]'
                                           : st === 'UNKNOWN'
@@ -994,7 +994,7 @@ export function CircuitStudio() {
                   </div>
                   <div className="flex justify-between font-mono tabular-nums">
                     <span>Network Stability</span>
-                    <span className={simulation.stable ? 'text-[#16A34A]' : 'text-[#DC2626]'}>
+                    <span className={simulation.stable ? 'text-[#15803D]' : 'text-[#DC2626]'}>
                       {simulation.stable ? 'Settled' : 'Oscillating'}
                     </span>
                   </div>
