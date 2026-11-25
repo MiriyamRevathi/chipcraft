@@ -39,12 +39,17 @@ export function CommandPalette() {
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (open) {
+      previousFocusRef.current = document.activeElement as HTMLElement | null;
       setQuery('');
       setActiveIndex(0);
       setTimeout(() => inputRef.current?.focus(), 20);
+    } else if (previousFocusRef.current) {
+      previousFocusRef.current.focus();
+      previousFocusRef.current = null;
     }
   }, [open]);
 
@@ -132,10 +137,16 @@ export function CommandPalette() {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-3 px-4 py-3 border-b border-[#E4DFF7]">
-          <Search className="w-4 h-4 text-[#5B587A] shrink-0" />
+          <Search aria-hidden="true" className="w-4 h-4 text-[#5B587A] shrink-0" />
           <input
             ref={inputRef}
             type="text"
+            role="combobox"
+            aria-expanded={open}
+            aria-autocomplete="list"
+            aria-controls="command-palette-listbox"
+            aria-activedescendant={filtered[activeIndex] ? `cmd-opt-${filtered[activeIndex].id}` : undefined}
+            aria-label="Search workspaces, examples, and commands"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => {
@@ -158,13 +169,14 @@ export function CommandPalette() {
           <button
             type="button"
             onClick={() => setOpen(false)}
+            aria-label="Close command palette"
             className="text-xs font-mono text-[#5B587A] hover:text-[#141226] px-1.5 py-0.5 border border-[#E4DFF7] rounded cursor-pointer"
           >
             ESC
           </button>
         </div>
 
-        <div className="max-h-[380px] overflow-y-auto py-2">
+        <div id="command-palette-listbox" role="listbox" aria-label="Command results" className="max-h-[380px] overflow-y-auto py-2">
           {filtered.length === 0 ? (
             <div className="px-4 py-8 text-center text-sm text-[#5B587A]">
               No matching workspaces, examples, or actions.
@@ -175,7 +187,10 @@ export function CommandPalette() {
               return (
                 <button
                   key={item.id}
+                  id={`cmd-opt-${item.id}`}
                   type="button"
+                  role="option"
+                  aria-selected={active}
                   onMouseEnter={() => setActiveIndex(idx)}
                   onClick={() => execute(item)}
                   className={`w-full flex items-center justify-between gap-4 px-4 py-2.5 text-left transition-colors cursor-pointer ${
@@ -185,16 +200,16 @@ export function CommandPalette() {
                   <div className="min-w-0 flex items-center gap-3">
                     {item.group === 'Actions' ? (
                       item.id === 'act-save' ? (
-                        <Save className="w-4 h-4 shrink-0 text-[#5B587A]" />
+                        <Save aria-hidden="true" className="w-4 h-4 shrink-0 text-[#5B587A]" />
                       ) : item.id === 'act-step' ? (
-                        <Play className="w-4 h-4 shrink-0 text-[#5B587A]" />
+                        <Play aria-hidden="true" className="w-4 h-4 shrink-0 text-[#5B587A]" />
                       ) : (
-                        <FilePlus className="w-4 h-4 shrink-0 text-[#5B587A]" />
+                        <FilePlus aria-hidden="true" className="w-4 h-4 shrink-0 text-[#5B587A]" />
                       )
                     ) : item.group === 'Built-In Examples' ? (
-                      <Layers className="w-4 h-4 shrink-0 text-[#5B587A]" />
+                      <Layers aria-hidden="true" className="w-4 h-4 shrink-0 text-[#5B587A]" />
                     ) : (
-                      <Cpu className="w-4 h-4 shrink-0 text-[#5B587A]" />
+                      <Cpu aria-hidden="true" className="w-4 h-4 shrink-0 text-[#5B587A]" />
                     )}
                     <div className="min-w-0">
                       <div className="text-sm font-medium truncate">{item.label}</div>
@@ -203,7 +218,7 @@ export function CommandPalette() {
                       </div>
                     </div>
                   </div>
-                  <ArrowRight className="w-3.5 h-3.5 shrink-0 opacity-60" />
+                  <ArrowRight aria-hidden="true" className="w-3.5 h-3.5 shrink-0 opacity-60" />
                 </button>
               );
             })
