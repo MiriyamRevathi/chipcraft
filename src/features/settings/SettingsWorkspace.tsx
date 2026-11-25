@@ -76,6 +76,7 @@ export function SettingsWorkspace() {
               <div className="text-xs text-[#5B587A]">Choose 90° orthogonal PCB traces or smooth cubic Bezier curves.</div>
             </div>
             <SegmentedTabs
+              ariaLabel="Wire routing geometry"
               value={settings.wireStyle}
               onChange={(wireStyle) => updateSettings({ wireStyle })}
               options={[
@@ -99,6 +100,8 @@ export function SettingsWorkspace() {
                 step={0.5}
                 value={settings.defaultClockHz}
                 onChange={(e) => updateSettings({ defaultClockHz: Number(e.target.value) })}
+                aria-label="Default clock frequency in Hertz"
+                aria-valuetext={`${settings.defaultClockHz.toFixed(1)} Hz`}
                 className="w-32 accent-[#5B4CE6]"
               />
               <span className="font-mono text-xs font-semibold text-[#141226] tabular-nums w-14 text-right">

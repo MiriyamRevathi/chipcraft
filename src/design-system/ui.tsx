@@ -51,19 +51,36 @@ export function SegmentedTabs<T extends string>({
   options,
   value,
   onChange,
+  ariaLabel,
   className = '',
 }: {
   options: Array<{ value: T; label: string }>;
   value: T;
   onChange: (val: T) => void;
+  ariaLabel?: string;
   className?: string;
 }) {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, idx: number) => {
+    let nextIdx: number | null = null;
+    if (e.key === 'ArrowRight') nextIdx = (idx + 1) % options.length;
+    else if (e.key === 'ArrowLeft') nextIdx = (idx - 1 + options.length) % options.length;
+    else if (e.key === 'Home') nextIdx = 0;
+    else if (e.key === 'End') nextIdx = options.length - 1;
+    if (nextIdx === null) return;
+    e.preventDefault();
+    onChange(options[nextIdx].value);
+    const parent = e.currentTarget.parentElement;
+    const buttons = parent?.querySelectorAll<HTMLButtonElement>('[role="tab"]');
+    buttons?.[nextIdx]?.focus();
+  };
+
   return (
     <div
       role="tablist"
+      aria-label={ariaLabel}
       className={`inline-flex items-center gap-1 p-1 bg-[#F1EEFC] border border-[#E4DFF7] rounded-lg ${className}`}
     >
-      {options.map((opt) => {
+      {options.map((opt, idx) => {
         const active = opt.value === value;
         return (
           <button
@@ -71,8 +88,10 @@ export function SegmentedTabs<T extends string>({
             type="button"
             role="tab"
             aria-selected={active}
+            tabIndex={active ? 0 : -1}
             onClick={() => onChange(opt.value)}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+            onKeyDown={(e) => handleKeyDown(e, idx)}
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4CE6] ${
               active
                 ? 'bg-white text-[#5B4CE6] shadow-xs'
                 : 'text-[#5B587A] hover:text-[#141226]'

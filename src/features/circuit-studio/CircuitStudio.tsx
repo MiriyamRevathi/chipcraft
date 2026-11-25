@@ -260,9 +260,11 @@ export function CircuitStudio() {
             type="button"
             onClick={() => setLeftOpen((o) => !o)}
             title={leftOpen ? 'Hide component library' : 'Show component library'}
+            aria-label={leftOpen ? 'Hide component library' : 'Show component library'}
+            aria-expanded={leftOpen}
             className="p-1.5 text-[#475569] hover:text-[#141226] hover:bg-[#F1EEFC] rounded cursor-pointer"
           >
-            {leftOpen ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+            {leftOpen ? <ChevronLeft aria-hidden="true" className="w-4 h-4" /> : <ChevronRight aria-hidden="true" className="w-4 h-4" />}
           </button>
 
           <input
@@ -301,12 +303,12 @@ export function CircuitStudio() {
         </div>
 
         {/* Edit & Viewport Controls */}
-        <div className="flex items-center gap-1 shrink-0">
-          <Button variant="ghost" size="sm" onClick={undo} disabled={pastCount === 0} title="Undo (Ctrl+Z)">
-            <Undo2 className="w-3.5 h-3.5" />
+        <div className="flex items-center gap-1 shrink-0" role="toolbar" aria-label="Circuit editing and viewport controls">
+          <Button variant="ghost" size="sm" onClick={undo} disabled={pastCount === 0} title="Undo (Ctrl+Z)" aria-label="Undo">
+            <Undo2 aria-hidden="true" className="w-3.5 h-3.5" />
           </Button>
-          <Button variant="ghost" size="sm" onClick={redo} disabled={futureCount === 0} title="Redo (Ctrl+Y)">
-            <Redo2 className="w-3.5 h-3.5" />
+          <Button variant="ghost" size="sm" onClick={redo} disabled={futureCount === 0} title="Redo (Ctrl+Y)" aria-label="Redo">
+            <Redo2 aria-hidden="true" className="w-3.5 h-3.5" />
           </Button>
           <span className="w-px h-4 bg-[#E4DFF7] mx-1" aria-hidden="true" />
           <Button
@@ -315,11 +317,12 @@ export function CircuitStudio() {
             onClick={copySelection}
             disabled={selectedNodeIds.length === 0}
             title="Copy (Ctrl+C)"
+            aria-label="Copy selection"
           >
-            <Copy className="w-3.5 h-3.5" />
+            <Copy aria-hidden="true" className="w-3.5 h-3.5" />
           </Button>
-          <Button variant="ghost" size="sm" onClick={pasteClipboard} title="Paste (Ctrl+V)">
-            <ClipboardPaste className="w-3.5 h-3.5" />
+          <Button variant="ghost" size="sm" onClick={pasteClipboard} title="Paste (Ctrl+V)" aria-label="Paste">
+            <ClipboardPaste aria-hidden="true" className="w-3.5 h-3.5" />
           </Button>
           <Button
             variant="ghost"
@@ -327,8 +330,9 @@ export function CircuitStudio() {
             onClick={duplicateSelection}
             disabled={selectedNodeIds.length === 0}
             title="Duplicate (Ctrl+D)"
+            aria-label="Duplicate selection"
           >
-            <Files className="w-3.5 h-3.5" />
+            <Files aria-hidden="true" className="w-3.5 h-3.5" />
           </Button>
           <Button
             variant="ghost"
@@ -336,8 +340,9 @@ export function CircuitStudio() {
             onClick={rotateSelectedNodes}
             disabled={selectedNodeIds.length === 0}
             title="Rotate 90° (R)"
+            aria-label="Rotate selection 90 degrees"
           >
-            <RotateCw className="w-3.5 h-3.5" />
+            <RotateCw aria-hidden="true" className="w-3.5 h-3.5" />
           </Button>
           <Button
             variant="ghost"
@@ -345,18 +350,19 @@ export function CircuitStudio() {
             onClick={deleteSelection}
             disabled={selectedNodeIds.length === 0 && !selectedWireId}
             title="Delete selection (Del)"
+            aria-label="Delete selection"
           >
-            <Trash2 className="w-3.5 h-3.5 text-[#DC2626]" />
+            <Trash2 aria-hidden="true" className="w-3.5 h-3.5 text-[#DC2626]" />
           </Button>
           <span className="w-px h-4 bg-[#E4DFF7] mx-1" aria-hidden="true" />
-          <Button variant="ghost" size="sm" onClick={() => viewportApiRef.current?.zoomOut()} title="Zoom out">
-            <ZoomOut className="w-3.5 h-3.5" />
+          <Button variant="ghost" size="sm" onClick={() => viewportApiRef.current?.zoomOut()} title="Zoom out" aria-label="Zoom out">
+            <ZoomOut aria-hidden="true" className="w-3.5 h-3.5" />
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => viewportApiRef.current?.zoomIn()} title="Zoom in">
-            <ZoomIn className="w-3.5 h-3.5" />
+          <Button variant="ghost" size="sm" onClick={() => viewportApiRef.current?.zoomIn()} title="Zoom in" aria-label="Zoom in">
+            <ZoomIn aria-hidden="true" className="w-3.5 h-3.5" />
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => viewportApiRef.current?.fitToView()} title="Fit circuit">
-            <Maximize2 className="w-3.5 h-3.5" />
+          <Button variant="ghost" size="sm" onClick={() => viewportApiRef.current?.fitToView()} title="Fit circuit" aria-label="Fit circuit to view">
+            <Maximize2 aria-hidden="true" className="w-3.5 h-3.5" />
           </Button>
         </div>
 
@@ -373,11 +379,11 @@ export function CircuitStudio() {
                 : 'Package current circuit as reusable Custom IC'
             }
           >
-            <Cpu className="w-3.5 h-3.5 text-[#5B4CE6]" />
+            <Cpu aria-hidden="true" className="w-3.5 h-3.5 text-[#5B4CE6]" />
             <span>Package IC</span>
           </Button>
-          <Button variant="secondary" size="sm" onClick={handleExportJson} title="Export JSON">
-            <Download className="w-3.5 h-3.5" />
+          <Button variant="secondary" size="sm" onClick={handleExportJson} title="Export JSON" aria-label="Export JSON">
+            <Download aria-hidden="true" className="w-3.5 h-3.5" />
             <span className="hidden xl:inline">Export</span>
           </Button>
           <Button
@@ -388,8 +394,9 @@ export function CircuitStudio() {
               setSaveAsOpen(true);
             }}
             title="Save a copy under a new name"
+            aria-label="Save As"
           >
-            <SaveAll className="w-3.5 h-3.5" />
+            <SaveAll aria-hidden="true" className="w-3.5 h-3.5" />
             <span className="hidden xl:inline">Save As</span>
           </Button>
           <Button
@@ -398,7 +405,7 @@ export function CircuitStudio() {
             onClick={() => void saveCurrentCircuitProject()}
             title="Save locally in IndexedDB and disk storage"
           >
-            <Save className="w-3.5 h-3.5" />
+            <Save aria-hidden="true" className="w-3.5 h-3.5" />
             <span>Save</span>
           </Button>
           <button
@@ -406,9 +413,10 @@ export function CircuitStudio() {
             onClick={() => setRightOpen((o) => !o)}
             title={rightOpen ? 'Hide inspector' : 'Show inspector'}
             aria-label={rightOpen ? 'Hide inspector panel' : 'Show inspector panel'}
+            aria-expanded={rightOpen}
             className="p-1.5 text-[#5B587A] hover:text-[#141226] hover:bg-[#F3F0FF] rounded cursor-pointer"
           >
-            {rightOpen ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+            {rightOpen ? <ChevronRight aria-hidden="true" className="w-4 h-4" /> : <ChevronLeft aria-hidden="true" className="w-4 h-4" />}
           </button>
         </div>
       </div>
@@ -440,7 +448,9 @@ export function CircuitStudio() {
               onChange={(e) => setSaveAsName(e.target.value)}
               aria-label="New circuit name"
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && saveAsName.trim()) {
+                if (e.key === 'Escape') {
+                  setSaveAsOpen(false);
+                } else if (e.key === 'Enter' && saveAsName.trim()) {
                   void saveCurrentCircuitProject(saveAsName.trim());
                   setSaveAsOpen(false);
                 }

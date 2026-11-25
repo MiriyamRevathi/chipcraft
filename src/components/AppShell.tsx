@@ -169,6 +169,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   }`}
                 >
                   <Icon
+                    aria-hidden="true"
                     className={`w-4 h-4 shrink-0 ${active ? 'text-[#5B4CE6]' : 'text-[#7A7699]'}`}
                   />
                   <span className="truncate">{item.label}</span>
@@ -190,7 +191,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         Skip to main content
       </a>
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex lg:flex-col w-60 shrink-0 bg-white border-r border-[#E4DFF7]">
+      <aside aria-label="Workspace sidebar" className="hidden lg:flex lg:flex-col w-60 shrink-0 bg-white border-r border-[#E4DFF7]">
         <div className="h-14 px-4 flex items-center border-b border-[#E4DFF7]">
           <button
             type="button"
@@ -220,7 +221,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             className="w-full flex items-center justify-between gap-2 px-3 py-2 text-xs text-[#5B587A] bg-[#F7F5FF] hover:bg-[#EFEBFD] border border-[#E4DFF7] rounded-md transition-colors cursor-pointer"
           >
             <span className="flex items-center gap-2 truncate">
-              <Search className="w-3.5 h-3.5 shrink-0" />
+              <Search aria-hidden="true" className="w-3.5 h-3.5 shrink-0" />
               Quick Command
             </span>
             <KeyHint>⌘K</KeyHint>
@@ -235,6 +236,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           onClick={() => setMobileNavOpen(false)}
         >
           <aside
+            role="dialog"
+            aria-modal="true"
+            aria-label="Workspace navigation"
             className="w-64 max-w-[82vw] h-full bg-white border-r border-[#E4DFF7] flex flex-col shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
@@ -244,9 +248,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 type="button"
                 onClick={() => setMobileNavOpen(false)}
                 aria-label="Close navigation menu"
-                className="p-1.5 text-[#5B587A] hover:text-[#141226] rounded cursor-pointer"
+                autoFocus
+                className="p-1.5 text-[#5B587A] hover:text-[#141226] rounded cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B4CE6]"
               >
-                <X className="w-5 h-5" />
+                <X aria-hidden="true" className="w-5 h-5" />
               </button>
             </div>
             {renderNavLinks()}
@@ -262,9 +267,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               type="button"
               onClick={() => setMobileNavOpen(true)}
               aria-label="Open navigation menu"
+              aria-expanded={mobileNavOpen}
               className="lg:hidden p-1.5 -ml-1 text-[#5B587A] hover:text-[#141226] rounded-md hover:bg-[#F3F0FF] cursor-pointer"
             >
-              <Menu className="w-5 h-5" />
+              <Menu aria-hidden="true" className="w-5 h-5" />
             </button>
             <div className="min-w-0 flex items-baseline gap-3">
               <h1 className="text-[15px] font-semibold text-[#141226] truncate">
