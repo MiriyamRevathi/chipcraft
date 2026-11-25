@@ -1,19 +1,56 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { AppShell } from './components/AppShell';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { useChipCraftStore } from './state/useChipCraftStore';
 import { HomeWorkspace } from './features/home/HomeWorkspace';
-import { CircuitStudio } from './features/circuit-studio/CircuitStudio';
-import { LogicGateLab } from './features/logic-lab/LogicGateLab';
-import { CPUArchitect } from './features/cpu-architect/CPUArchitect';
-import { MemoryLab } from './features/memory-lab/MemoryLab';
-import { SignalAnalyzer } from './features/signal-analyzer/SignalAnalyzer';
-import { HDLStudio } from './features/hdl-studio/HDLStudio';
-import { ChipExplorer } from './features/chip-explorer/ChipExplorer';
-import { ChallengeLab } from './features/challenge-lab/ChallengeLab';
-import { ProjectLibrary } from './features/project-library/ProjectLibrary';
-import { DocumentationWorkspace } from './features/documentation/DocumentationWorkspace';
-import { SettingsWorkspace } from './features/settings/SettingsWorkspace';
+
+const CircuitStudio = lazy(() =>
+  import('./features/circuit-studio/CircuitStudio').then((m) => ({ default: m.CircuitStudio }))
+);
+const LogicGateLab = lazy(() =>
+  import('./features/logic-lab/LogicGateLab').then((m) => ({ default: m.LogicGateLab }))
+);
+const CPUArchitect = lazy(() =>
+  import('./features/cpu-architect/CPUArchitect').then((m) => ({ default: m.CPUArchitect }))
+);
+const MemoryLab = lazy(() =>
+  import('./features/memory-lab/MemoryLab').then((m) => ({ default: m.MemoryLab }))
+);
+const SignalAnalyzer = lazy(() =>
+  import('./features/signal-analyzer/SignalAnalyzer').then((m) => ({ default: m.SignalAnalyzer }))
+);
+const HDLStudio = lazy(() =>
+  import('./features/hdl-studio/HDLStudio').then((m) => ({ default: m.HDLStudio }))
+);
+const ChipExplorer = lazy(() =>
+  import('./features/chip-explorer/ChipExplorer').then((m) => ({ default: m.ChipExplorer }))
+);
+const ChallengeLab = lazy(() =>
+  import('./features/challenge-lab/ChallengeLab').then((m) => ({ default: m.ChallengeLab }))
+);
+const ProjectLibrary = lazy(() =>
+  import('./features/project-library/ProjectLibrary').then((m) => ({ default: m.ProjectLibrary }))
+);
+const DocumentationWorkspace = lazy(() =>
+  import('./features/documentation/DocumentationWorkspace').then((m) => ({
+    default: m.DocumentationWorkspace,
+  }))
+);
+const SettingsWorkspace = lazy(() =>
+  import('./features/settings/SettingsWorkspace').then((m) => ({ default: m.SettingsWorkspace }))
+);
+
+function WorkspaceFallback() {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="h-full w-full flex items-center justify-center bg-[#F7F5FF] text-sm text-[#5B587A]"
+    >
+      Loading workspace...
+    </div>
+  );
+}
 
 export default function App() {
   const workspace = useChipCraftStore((s) => s.workspace);
@@ -53,7 +90,7 @@ export default function App() {
   return (
     <AppShell>
       <ErrorBoundary key={workspace} onReset={() => setWorkspace('home')}>
-        {renderWorkspace()}
+        <Suspense fallback={<WorkspaceFallback />}>{renderWorkspace()}</Suspense>
       </ErrorBoundary>
     </AppShell>
   );
