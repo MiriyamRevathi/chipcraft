@@ -107,7 +107,7 @@ export function SegmentedTabs<T extends string>({
 
 export function SignalReadout({ state, compact = false }: { state: SignalState; compact?: boolean }) {
   const styles: Record<SignalState, { text: string; glyph: string; label: string }> = {
-    HIGH: { text: 'text-[#16A34A]', glyph: '1', label: 'HIGH' },
+    HIGH: { text: 'text-[#15803D]', glyph: '1', label: 'HIGH' },
     LOW: { text: 'text-[#5B587A]', glyph: '0', label: 'LOW' },
     UNKNOWN: { text: 'text-[#B45309]', glyph: 'X', label: 'FLOATING' },
     HIGH_IMPEDANCE: { text: 'text-[#0891B2]', glyph: 'Z', label: 'HI-Z' },

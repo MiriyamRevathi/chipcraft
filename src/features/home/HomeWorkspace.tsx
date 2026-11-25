@@ -135,7 +135,7 @@ export function HomeWorkspace() {
             </div>
 
             <div className="py-4">
-              <svg viewBox="0 0 520 210" className="w-full h-auto" role="img" aria-label="Interactive Half Adder schematic">
+              <svg viewBox="0 0 520 210" className="w-full h-auto" role="group" aria-label="Interactive Half Adder schematic">
                 {/* Wires A & B to XOR and AND */}
                 <path
                   d="M 105 55 H 190 V 45 H 245"
@@ -192,7 +192,7 @@ export function HomeWorkspace() {
                   role="button"
                   tabIndex={0}
                   aria-pressed={demoA === 1}
-                  aria-label="Toggle input A"
+                  aria-label={`A = ${demoA} — Toggle input A`}
                 >
                   <rect
                     x={20}
@@ -222,7 +222,7 @@ export function HomeWorkspace() {
                   role="button"
                   tabIndex={0}
                   aria-pressed={demoB === 1}
-                  aria-label="Toggle input B"
+                  aria-label={`B = ${demoB} — Toggle input B`}
                 >
                   <rect
                     x={20}

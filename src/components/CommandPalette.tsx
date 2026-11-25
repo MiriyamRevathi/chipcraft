@@ -169,7 +169,7 @@ export function CommandPalette() {
           <button
             type="button"
             onClick={() => setOpen(false)}
-            aria-label="Close command palette"
+            aria-label="ESC — Close command palette"
             className="text-xs font-mono text-[#5B587A] hover:text-[#141226] px-1.5 py-0.5 border border-[#E4DFF7] rounded cursor-pointer"
           >
             ESC
